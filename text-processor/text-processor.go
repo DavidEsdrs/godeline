@@ -5,6 +5,7 @@ import (
 
 	editnode "github.com/DavidEsdrs/goditor/editNode"
 	"github.com/DavidEsdrs/goditor/logger"
+	"github.com/DavidEsdrs/goditor/tags"
 	"github.com/DavidEsdrs/goditor/token"
 )
 
@@ -24,54 +25,94 @@ func NewProcessor(et *editnode.EditionTree, maxBufferLength int, logger *logger.
 	}
 }
 
-func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
+// func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
+// 	result := NewTextResult()
+
+// 	accIndex := 0
+// 	currLine := 0
+// 	charsUntilLastLine := 0
+// 	length := len(text)
+
+// 	for accIndex < length {
+// 		current := rune(text[accIndex])
+// 		bufferLength := 1
+
+// 		if current == '\n' {
+// 			charsUntilLastLine = accIndex
+// 			currLine++
+// 		}
+
+// 		if isSegmentStart, _ := p.EditionTree.IsSegmentStart(current); isSegmentStart {
+// 			delimiter, foundDelimiter := p.EditionTree.GetFirstDelimiter(text[accIndex:])
+
+// 			if foundDelimiter {
+// 				counterpart := delimiter.Tag.Closing
+// 				finalText, matchedDelimiter := ReadUntilSegment(text[accIndex:], counterpart, p.maxBufferLength)
+// 				bufferLength = len(delimiter.FullDelimiter)
+
+// 				if matchedDelimiter {
+// 					relativeIdx := accIndex - charsUntilLastLine - 1
+// 					t := token.NewToken(finalText, relativeIdx, currLine, &delimiter)
+// 					result.AddToken(t)
+// 				}
+// 			}
+// 		}
+
+// 		accIndex += bufferLength
+// 	}
+
+// 	if sanitize {
+// 		result.tokens = p.Sanitize(result.tokens...)
+// 		return result
+// 	}
+
+// 	return result
+// }
+
+func (p *Processor) TokenizeText(text string, sanitize bool) TextResult {
+	currentIdx := 0
+	textLength := len(text)
 	result := NewTextResult()
 
-	accIndex := 0
-	currLine := 0
-	charsUntilLastLine := 0
-	length := len(text)
+	for currentIdx < textLength {
+		tag, found := p.FoundTag(text, currentIdx)
 
-	for accIndex < length {
-		current := rune(text[accIndex])
-		bufferLength := 1
-
-		if current == '\n' {
-			charsUntilLastLine = accIndex
-			currLine++
+		if found {
+			token := p.GetTextByTag(text, currentIdx, tag)
+			result.AddToken(token)
 		}
 
-		if isSegmentStart, _ := p.EditionTree.IsSegmentStart(current); isSegmentStart {
-			delimiter, foundDelimiter := p.EditionTree.GetFirstDelimiter(text[accIndex:])
-
-			if foundDelimiter {
-				counterpart := delimiter.DelimiterCounterpart
-				finalText, matchedDelimiter := ReadUntilSegment(text[accIndex:], counterpart, p.maxBufferLength)
-				bufferLength = len(delimiter.FullDelimiter)
-
-				if matchedDelimiter {
-					relativeIdx := accIndex - charsUntilLastLine - 1
-					t := token.NewToken(finalText, relativeIdx, currLine, &delimiter)
-					result.AddToken(t)
-				}
-			}
-		}
-
-		accIndex += bufferLength
-	}
-
-	if sanitize {
-		result.tokens = p.Sanitize(result.tokens...)
-		return result
+		currentIdx++
 	}
 
 	return result
 }
 
+// returns wether the next few characters constitute a tag
+func (p *Processor) FoundTag(text string, idx int) (tags.Tag, bool) {
+	current := p.EditionTree.Root()
+	currentIdx := idx
+	currentChar := rune(text[currentIdx])
+
+	node, exists := current.Children[currentChar]
+
+	// if exists is true, there is a possibility that we have found a tag
+	// we will just make sure when continue to read the next few characters
+	for exists {
+		current = node
+		currentIdx++
+
+		currentChar = rune(text[currentIdx])
+		node, exists = current.Children[currentChar]
+	}
+
+	return current.Tag, current.IsEnd
+}
+
 func (p *Processor) Sanitize(tokens ...token.Token) []token.Token {
 	res := make([]token.Token, len(tokens))
 	for i, t := range tokens {
-		sanitizedText := Normalize(t.Word, t.EditNode.FullDelimiter, t.EditNode.DelimiterCounterpart)
+		sanitizedText := Normalize(t.Word, t.EditNode.Tag.Opening, t.EditNode.Tag.Closing)
 		res[i] = t
 		res[i].Word = sanitizedText
 	}
@@ -79,15 +120,15 @@ func (p *Processor) Sanitize(tokens ...token.Token) []token.Token {
 }
 
 // returns the whole string until find the given segment
-func ReadUntilSegment(text, segment string, maxBufferLength int) (res string, foundSegment bool) {
-	bufferLen := len(segment)
+func ReadUntilTag(text string, tag tags.Tag, maxBufferLength int) (res string, foundSegment bool) {
+	bufferLen := len(tag.Closing)
 	var buffer string
 
 	i := bufferLen
 
 	for i+bufferLen < len(text) && i < maxBufferLength {
 		buffer = text[i : i+bufferLen]
-		if buffer == segment {
+		if buffer == tag.Closing {
 			return text[:i+bufferLen], true
 		}
 		i++
@@ -110,4 +151,17 @@ func Normalize(source string, removable ...string) string {
 	regex := regexp.MustCompile(pattern)
 	output := regex.ReplaceAllString(source, "")
 	return output
+}
+
+type Position struct {
+	Ln, Col int
+}
+
+// receives 4 arguments represeting the start and the and of 2 texts segments and returns if they overlaps
+func Overlap(p1Start, p1End, p2Start, p2End Position) bool {
+	return true
+}
+
+func IsInSameLine(p1, p2 Position) bool {
+	return p1.Ln == p2.Ln
 }

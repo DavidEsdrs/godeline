@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/DavidEsdrs/goditor/stack"
+	"github.com/DavidEsdrs/goditor/tags"
 )
 
 type EditionTree struct {
@@ -17,6 +18,10 @@ func NewEditTree() EditionTree {
 		root:       &node,
 		NodesQuant: 1,
 	}
+}
+
+func (et *EditionTree) Root() *EditNode {
+	return et.root
 }
 
 func (et *EditionTree) Traverse() []EditNode {
@@ -42,28 +47,21 @@ func (et *EditionTree) NewEditionType(delimiter string, counterpart string) erro
 
 	for i := range delimiter {
 		currSegment := rune(delimiter[i])
-		found := false
-
-		for _, node := range current.Children {
-			if node.Segment == currSegment {
-				found = true
-				current = node
-				break
-			}
-		}
+		node, found := current.Children[currSegment]
 
 		if found {
+			current = node
 			continue
 		}
 
 		newNode := EditNode{
-			Segment:              currSegment,
-			Children:             []*EditNode{},
-			FullDelimiter:        delimiter,
-			DelimiterCounterpart: counterpart,
-			IsEnd:                i == len(delimiter)-1,
+			Segment:  currSegment,
+			Children: map[rune]*EditNode{},
+			Tag:      tags.Tag{Opening: delimiter, Closing: counterpart},
+			IsEnd:    i == len(delimiter)-1,
 		}
-		current.Children = append(current.Children, &newNode)
+
+		current.Children[currSegment] = &newNode
 		current = &newNode
 
 		et.NodesQuant++ // TODO: Remove
@@ -98,7 +96,7 @@ func (et *EditionTree) HasDelimiter(text string) (hasDelimiter bool, delimiter s
 	}
 
 	hasDelimiter = current.Segment != '0' && current.IsEnd
-	delimiter = current.FullDelimiter
+	delimiter = current.Tag.Opening
 
 	return
 }
@@ -108,9 +106,6 @@ func (et *EditionTree) GetFirstDelimiter(text string) (node EditNode, found bool
 	current := et.root
 
 	for _, r := range text {
-		if r == ' ' || r == '\n' {
-			return *current, false
-		}
 		for _, c := range current.Children {
 			if c.Segment == r {
 				current = c
@@ -130,16 +125,15 @@ func isValidDelimiter(delimiter string) bool {
 }
 
 type EditNode struct {
-	Segment              rune
-	FullDelimiter        string
-	DelimiterCounterpart string
-	IsEnd                bool
-	Children             []*EditNode
+	Segment  rune
+	Tag      tags.Tag
+	IsEnd    bool
+	Children map[rune]*EditNode
 }
 
 func NewEditNode(seg rune) EditNode {
 	return EditNode{
 		Segment:  seg,
-		Children: []*EditNode{},
+		Children: map[rune]*EditNode{},
 	}
 }

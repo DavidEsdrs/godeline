@@ -50,14 +50,17 @@ func main() {
 
 	start := time.Now()
 
-	result := proc.Tokenize(input, true)
+	// result := proc.TokenizeText(input, true)
+	result, found := proc.FoundTag("[[bom]]", 0)
 
 	duration := time.Since(start)
 
-	for _, t := range result.Tokens() {
-		fmt.Printf("%v\n\n", t.Word)
-	}
+	// for _, t := range result.Tokens() {
+	// 	fmt.Printf("%v\n\n", t.Word)
+	// }
 
 	fmt.Printf("duration: %v\n", duration.String())
-	fmt.Printf("stats: %v tokens found\n", result.TokenQuantity)
+	// fmt.Printf("stats: %v tokens found\n", result.TokenQuantity)
+	fmt.Printf("found token: %v\n", found)
+	fmt.Printf("token: %#v token found\n", result)
 }
