@@ -5,6 +5,7 @@ import (
 
 	editnode "github.com/DavidEsdrs/goditor/editNode"
 	"github.com/DavidEsdrs/goditor/logger"
+	"github.com/DavidEsdrs/goditor/position"
 	"github.com/DavidEsdrs/goditor/tags"
 	"github.com/DavidEsdrs/goditor/token"
 )
@@ -25,51 +26,7 @@ func NewProcessor(et *editnode.EditionTree, maxBufferLength int, logger *logger.
 	}
 }
 
-// func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
-// 	result := NewTextResult()
-
-// 	accIndex := 0
-// 	currLine := 0
-// 	charsUntilLastLine := 0
-// 	length := len(text)
-
-// 	for accIndex < length {
-// 		current := rune(text[accIndex])
-// 		bufferLength := 1
-
-// 		if current == '\n' {
-// 			charsUntilLastLine = accIndex
-// 			currLine++
-// 		}
-
-// 		if isSegmentStart, _ := p.EditionTree.IsSegmentStart(current); isSegmentStart {
-// 			delimiter, foundDelimiter := p.EditionTree.GetFirstDelimiter(text[accIndex:])
-
-// 			if foundDelimiter {
-// 				counterpart := delimiter.Tag.Closing
-// 				finalText, matchedDelimiter := ReadUntilSegment(text[accIndex:], counterpart, p.maxBufferLength)
-// 				bufferLength = len(delimiter.FullDelimiter)
-
-// 				if matchedDelimiter {
-// 					relativeIdx := accIndex - charsUntilLastLine - 1
-// 					t := token.NewToken(finalText, relativeIdx, currLine, &delimiter)
-// 					result.AddToken(t)
-// 				}
-// 			}
-// 		}
-
-// 		accIndex += bufferLength
-// 	}
-
-// 	if sanitize {
-// 		result.tokens = p.Sanitize(result.tokens...)
-// 		return result
-// 	}
-
-// 	return result
-// }
-
-func (p *Processor) TokenizeText(text string, sanitize bool) TextResult {
+func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
 	currentIdx := 0
 	textLength := len(text)
 	result := NewTextResult()
@@ -80,6 +37,51 @@ func (p *Processor) TokenizeText(text string, sanitize bool) TextResult {
 		if found {
 			token := p.GetTextByTag(text, currentIdx, tag)
 			result.AddToken(token)
+		}
+
+		currentIdx++
+	}
+
+	return result
+}
+
+// returns the text within the given tags
+func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) token.Token {
+	var (
+		result      token.Token
+		startingIdx = idx
+		// once the function is being called when we've found a opening tag, we assume
+		// that the next few characters is the given opening tag. So let skip it.
+		offset     = len(tag.Opening)
+		currentIdx = idx + offset
+		currentCol int
+		currentLn  int
+		bufferLen  = len(tag.Closing)
+	)
+
+	startingPosition := position.GetPosition(text, idx)
+	currentCol = startingPosition.Col
+	currentLn = startingPosition.Ln
+
+	found := false
+
+	for !found && currentIdx-startingIdx < p.maxBufferLength {
+		buffer := text[currentIdx : currentIdx+bufferLen]
+
+		if buffer == tag.Closing {
+			innerText := text[startingIdx : currentIdx+bufferLen]
+			pos := position.Position{Ln: currentLn, Col: currentCol + offset - len(innerText)}
+			result = token.NewToken(innerText, pos, tag, nil) // TODO: pass editNode instead of nil
+			return result
+		}
+
+		currentChar := rune(text[currentIdx])
+
+		if currentChar == '\n' {
+			currentLn++
+			currentCol = 0
+		} else {
+			currentCol++
 		}
 
 		currentIdx++
@@ -151,17 +153,4 @@ func Normalize(source string, removable ...string) string {
 	regex := regexp.MustCompile(pattern)
 	output := regex.ReplaceAllString(source, "")
 	return output
-}
-
-type Position struct {
-	Ln, Col int
-}
-
-// receives 4 arguments represeting the start and the and of 2 texts segments and returns if they overlaps
-func Overlap(p1Start, p1End, p2Start, p2End Position) bool {
-	return true
-}
-
-func IsInSameLine(p1, p2 Position) bool {
-	return p1.Ln == p2.Ln
 }
