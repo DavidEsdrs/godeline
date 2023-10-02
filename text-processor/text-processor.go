@@ -47,21 +47,17 @@ func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
 
 // returns the text within the given tags
 func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) token.Token {
-	var (
-		result      token.Token
-		startingIdx = idx
-		// once the function is being called when we've found a opening tag, we assume
-		// that the next few characters is the given opening tag. So let skip it.
-		offset     = len(tag.Opening)
-		currentIdx = idx + offset
-		currentCol int
-		currentLn  int
-		bufferLen  = len(tag.Closing)
-	)
+	var result token.Token
 
+	startingIdx := idx
+	// once the function is being called when we've found a opening tag, we assume
+	// that the next few characters is the given opening tag. So let skip it.
+	offset := len(tag.Opening)
+	currentIdx := idx + offset
+	bufferLen := len(tag.Closing)
 	startingPosition := position.GetPosition(text, idx)
-	currentCol = startingPosition.Col
-	currentLn = startingPosition.Ln
+	currentCol := startingPosition.Col
+	currentLn := startingPosition.Ln
 
 	found := false
 
@@ -75,19 +71,25 @@ func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) token.Token
 			return result
 		}
 
-		currentChar := rune(text[currentIdx])
-
-		if currentChar == '\n' {
-			currentLn++
-			currentCol = 0
-		} else {
-			currentCol++
-		}
-
-		currentIdx++
+		currentIdx, currentCol, currentLn = updatePosition(text, currentIdx, currentCol, currentLn)
 	}
 
 	return result
+}
+
+func updatePosition(text string, currentIdx, currentCol, currentLn int) (int, int, int) {
+	currentChar := rune(text[currentIdx])
+
+	if currentChar == '\n' {
+		currentLn++
+		currentCol = 0
+	} else {
+		currentCol++
+	}
+
+	currentIdx++
+
+	return currentIdx, currentCol, currentLn
 }
 
 // returns wether the next few characters constitute a tag
