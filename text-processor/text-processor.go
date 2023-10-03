@@ -1,6 +1,7 @@
 package text_processor
 
 import (
+	"bytes"
 	"regexp"
 
 	editnode "github.com/DavidEsdrs/goditor/editNode"
@@ -12,7 +13,6 @@ import (
 
 type Processor struct {
 	EditionTree     *editnode.EditionTree
-	Tokens          []string
 	logger          *logger.Logger
 	maxBufferLength int
 }
@@ -20,12 +20,12 @@ type Processor struct {
 func NewProcessor(et *editnode.EditionTree, maxBufferLength int, logger *logger.Logger) Processor {
 	return Processor{
 		EditionTree:     et,
-		Tokens:          []string{},
 		logger:          logger,
 		maxBufferLength: maxBufferLength,
 	}
 }
 
+// Tokenize the given text using the processor prefix tree (EditionTree)
 func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
 	currentIdx := 0
 	textLength := len(text)
@@ -36,10 +36,16 @@ func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
 
 		if found {
 			token := p.GetTextByTag(text, currentIdx, tag)
-			result.AddToken(token)
+			result.AddToken(&token)
 		}
 
 		currentIdx++
+	}
+
+	if sanitize {
+		for _, t := range result.tokens {
+			t.Word = Normalize(t.Word, t.Tag.Opening, t.Tag.Closing)
+		}
 	}
 
 	return result
@@ -113,14 +119,11 @@ func (p *Processor) FoundTag(text string, idx int) (tags.Tag, bool) {
 	return current.Tag, current.IsEnd
 }
 
-func (p *Processor) Sanitize(tokens ...token.Token) []token.Token {
-	res := make([]token.Token, len(tokens))
+func (p *Processor) Sanitize(tokens ...token.Token) {
 	for i, t := range tokens {
 		sanitizedText := Normalize(t.Word, t.EditNode.Tag.Opening, t.EditNode.Tag.Closing)
-		res[i] = t
-		res[i].Word = sanitizedText
+		tokens[i].Word = sanitizedText
 	}
-	return res
 }
 
 // returns the whole string until find the given segment
@@ -143,16 +146,15 @@ func ReadUntilTag(text string, tag tags.Tag, maxBufferLength int) (res string, f
 
 // create a new string from the source with the given segments removed
 func Normalize(source string, removable ...string) string {
-	pattern := ""
+	var buf bytes.Buffer
 	for _, str := range removable {
 		escapedStr := regexp.QuoteMeta(str)
-		if pattern == "" {
-			pattern = escapedStr
-		} else {
-			pattern = pattern + "|" + escapedStr
+		if buf.Len() > 0 {
+			buf.WriteByte('|')
 		}
+		buf.WriteString(escapedStr)
 	}
-	regex := regexp.MustCompile(pattern)
+	regex := regexp.MustCompile(buf.String())
 	output := regex.ReplaceAllString(source, "")
 	return output
 }
