@@ -72,54 +72,6 @@ func (et *EditionTree) NewEditionType(delimiter string, counterpart string) erro
 	return nil
 }
 
-func (et *EditionTree) IsSegmentStart(r rune) (isSegmentStart bool, editNode EditNode) {
-	for _, node := range et.root.Children {
-		if node.Segment == r {
-			return true, *node
-		}
-	}
-	return
-}
-
-// returns if the given text has any delimiter in it - if so, it returns true
-// and the delimiter found
-func (et *EditionTree) HasDelimiter(text string) (hasDelimiter bool, delimiter string) {
-	current := et.root
-
-	for _, r := range text {
-		for _, c := range current.Children {
-			if c.Segment == r {
-				current = c
-				break
-			}
-		}
-	}
-
-	hasDelimiter = current.Segment != '0' && current.IsEnd
-	delimiter = current.Tag.Opening
-
-	return
-}
-
-// receives a text and returns the first delimiter found within it
-func (et *EditionTree) GetFirstDelimiter(text string) (node EditNode, found bool) {
-	current := et.root
-
-	for _, r := range text {
-		for _, c := range current.Children {
-			if c.Segment == r {
-				current = c
-				if c.IsEnd {
-					return *current, true
-				}
-				break
-			}
-		}
-	}
-
-	return
-}
-
 func isValidDelimiter(delimiter string) bool {
 	return len(delimiter) > 0
 }
