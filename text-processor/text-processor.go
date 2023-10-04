@@ -139,24 +139,6 @@ func (p *Processor) Sanitize(tokens ...token.Token) {
 	}
 }
 
-// returns the whole string until find the given segment
-func ReadUntilTag(text string, tag tags.Tag, maxBufferLength int) (res string, foundSegment bool) {
-	bufferLen := len(tag.Closing)
-	var buffer string
-
-	i := bufferLen
-
-	for i+bufferLen < len(text) && i < maxBufferLength {
-		buffer = text[i : i+bufferLen]
-		if buffer == tag.Closing {
-			return text[:i+bufferLen], true
-		}
-		i++
-	}
-
-	return "", false
-}
-
 // create a new string from the source with the given segments removed
 func Normalize(source string, removable ...string) string {
 	var buf bytes.Buffer
