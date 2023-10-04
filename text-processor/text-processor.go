@@ -2,6 +2,7 @@ package text_processor
 
 import (
 	"bytes"
+	"fmt"
 	"regexp"
 
 	editnode "github.com/DavidEsdrs/goditor/editNode"
@@ -41,7 +42,7 @@ func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
 			tag, found := p.FoundTag(text, currentIdx)
 
 			if found {
-				token := p.GetTextByTag(text, currentIdx, tag)
+				token, _ := p.GetTextByTag(text, currentIdx, tag) // TODO: Handle error properly
 				result.AddToken(&token)
 				tracker.RegisterToken(token)
 			}
@@ -60,7 +61,7 @@ func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
 }
 
 // returns the text within the given tags
-func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) token.Token {
+func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) (token.Token, error) {
 	var result token.Token
 
 	startingIdx := idx
@@ -73,10 +74,11 @@ func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) token.Token
 	startingPosition := position.GetPosition(text, idx)
 	currentCol := startingPosition.Col
 	currentLn := startingPosition.Ln
+	textLength := len(text)
 
 	found := false
 
-	for !found && currentIdx-startingIdx < p.maxBufferLength {
+	for !found && currentIdx-startingIdx < p.maxBufferLength && currentIdx+bufferLen < textLength {
 		buffer := text[currentIdx : currentIdx+bufferLen]
 
 		if buffer == tag.Closing {
@@ -87,13 +89,13 @@ func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) token.Token
 				Index: idx,
 			}
 			result = token.NewToken(innerText, pos, tag, nil) // TODO: pass editNode instead of nil
-			return result
+			return result, nil
 		}
 
 		currentIdx, currentCol, currentLn = updatePosition(text, currentIdx, currentCol, currentLn)
 	}
 
-	return result
+	return result, fmt.Errorf("couldn't find the correspondent closing tag")
 }
 
 func updatePosition(text string, currentIdx, currentCol, currentLn int) (int, int, int) {
