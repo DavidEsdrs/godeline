@@ -9,6 +9,7 @@ import (
 	"github.com/DavidEsdrs/goditor/position"
 	"github.com/DavidEsdrs/goditor/tags"
 	"github.com/DavidEsdrs/goditor/token"
+	"github.com/DavidEsdrs/goditor/tracker"
 )
 
 type Processor struct {
@@ -31,12 +32,19 @@ func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
 	textLength := len(text)
 	result := NewTextResult()
 
-	for currentIdx < textLength {
-		tag, found := p.FoundTag(text, currentIdx)
+	tracker := tracker.NewTracker()
 
-		if found {
-			token := p.GetTextByTag(text, currentIdx, tag)
-			result.AddToken(&token)
+	for currentIdx < textLength {
+		alreadySeen := tracker.AlreadySeen(currentIdx)
+
+		if !alreadySeen {
+			tag, found := p.FoundTag(text, currentIdx)
+
+			if found {
+				token := p.GetTextByTag(text, currentIdx, tag)
+				result.AddToken(&token)
+				tracker.RegisterToken(token)
+			}
 		}
 
 		currentIdx++
@@ -56,8 +64,9 @@ func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) token.Token
 	var result token.Token
 
 	startingIdx := idx
-	// once the function is being called when we've found a opening tag, we assume
-	// that the next few characters is the given opening tag. So let skip it.
+	// since this function is being called when we've found a opening tag, we assume
+	// that the next few characters is the given opening tag. So let skip it by
+	// offsetting it
 	offset := len(tag.Opening)
 	currentIdx := idx + offset
 	bufferLen := len(tag.Closing)
@@ -72,7 +81,11 @@ func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) token.Token
 
 		if buffer == tag.Closing {
 			innerText := text[startingIdx : currentIdx+bufferLen]
-			pos := position.Position{Ln: currentLn, Col: currentCol + offset - len(innerText)}
+			pos := position.Position{
+				Ln:    currentLn,
+				Col:   currentCol + offset - len(innerText),
+				Index: idx,
+			}
 			result = token.NewToken(innerText, pos, tag, nil) // TODO: pass editNode instead of nil
 			return result
 		}

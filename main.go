@@ -9,55 +9,81 @@ import (
 	text_processor "github.com/DavidEsdrs/goditor/text-processor"
 )
 
+// holds the maximum window length in which we go search for a closing tag
+const maxBufferLength = 1 << 12
+
 var input string = `
-A programação é uma habilidade poderosa que abre portas para infinitas possibilidades no mundo da tecnologia. Como um programador, você tem o poder de criar, moldar e otimizar /*sistemas*/, aplicativos e software de todos os tipos. É uma disciplina que combina criatividade e !~lógica~!, tornando-a <$fascinante$> para aqueles que se aventuram nesse campo.
-
-No mundo da programação, as [[linguagens]] são as <_ferramentas_> que você utiliza para expressar suas ideias. Você mencionou que é um programador com experiência em Node.js, %-JavaScript-% e %-TypeScript-%, bem como recentemente em Golang. Essas linguagens oferecem um conjunto diversificado de *.recursos e funcionalidades.* que podem ser combinados para criar soluções incríveis.
-
-Dominar essas linguagens é apenas o começo da jornada. À medida que você avança em sua carreira, seu interesse em matemática se tornará um trunfo valioso. A matemática está profundamente entrelaçada com muitos aspectos da programação, especialmente quando se trata de tópicos como cryptography e graphic computation.
-
-A manipulação de **!~matrizes~! e conceitos de linear algebra se tornarão ferramentas essenciais** à medida que você mergulha mais fundo na graphic computation e na criação de jogos 2D. Essa fusão de matemática e programação resulta em criações visuais impressionantes que podem cativar o público.
-
-À medida que você busca seu <!primeiro emprego!> na área de programação, recomendo focar em suas habilidades de fullstack para obter uma compreensão abrangente do desenvolvimento de software. Com o tempo, você pode explorar áreas como DBA (Database Administrator) e data science, que ampliarão ainda mais suas habilidades e horizontes.
-
-Cryptography e graphics computation são campos emocionantes que exigem conhecimento especializado. Continue aprendendo e aprimorando suas habilidades, e você estará preparado para enfrentar os <!desafios!> e as oportunidades que essas áreas oferecem.
-
-Lembre-se de que o <_Windows 10 é uma plataforma !*sólida*!_> para desenvolvimento, mas esteja aberto a outras tecnologias e sistemas operacionais à medida que sua carreira avança. O mundo da programação está {{sempre evoluindo}}, e a capacidade de se adaptar é uma habilidade fundamental.
-
-Continue perseguindo seus objetivos com entusiasmo e determinação, pois o campo da programação está repleto de oportunidades [[emocionantes]] esperando por você!
-A programação é uma habilidade poderosa que abre portas para infinitas possibilidades no mundo da tecnologia. Como um programador, você tem o poder de criar, moldar e otimizar /*sistemas*/, aplicativos e software de todos os tipos. É uma disciplina que combina criatividade e !~lógica~!, tornando-a fascinante para aqueles que se aventuram nesse campo.
+<html>
+	<head>
+		<title>Página Sem Atributos</title>
+	</head>
+	<body>
+		<header>
+			<h1>Exemplo de Página HTML</h1>
+			<nav>
+				<ul>
+					<li><a>Início</a></li>
+					<li><a>Sobre</a></li>
+					<li><a>Contato</a></li>
+				</ul>
+			</nav>
+		</header>
+		<main>
+			<section>
+				<h2>Seção 1</h2>
+				<p>Esta é a primeira seção do conteúdo.</p>
+			</section>
+			<section>
+				<h2>Seção 2</h2>
+				<p>Esta é a segunda seção do conteúdo.</p>
+				<ul>
+					<li>Item 1</li>
+					<li>Item 2</li>
+					<li>Item 3</li>
+				</ul>
+			</section>
+		</main>
+		<footer>
+			<p>Rodapé da página.</p>
+		</footer>
+	</body>
+</html>
 `
 
 func main() {
-	l := logger.NewLogger(true)
+	l := logger.NewLogger(false)
 	tree := editnode.NewEditTree()
 
 	// for now, delimiters must be asymmetric
-	tree.NewEditionType("//*", "*//")
-	tree.NewEditionType("//", "//")
-	tree.NewEditionType("/*", "*/")
-	tree.NewEditionType("<_", "_>")
-	tree.NewEditionType("!~", "~!")
-	tree.NewEditionType("*.", ".*")
-	tree.NewEditionType("!*", "*!")
-	tree.NewEditionType("{{", "}}")
-	tree.NewEditionType("<!", "!>")
-	tree.NewEditionType("[[", "]]")
-	tree.NewEditionType("%-", "-%")
-	tree.NewEditionType("<$", "$>")
+	tree.NewEditionType("<html>", "</html>")
+	tree.NewEditionType("<head>", "</head>")
+	tree.NewEditionType("<body>", "</body>")
+	tree.NewEditionType("<header>", "</header>")
+	tree.NewEditionType("<h1>", "</h1>")
+	tree.NewEditionType("<nav>", "</nav>")
+	tree.NewEditionType("<ul>", "</ul>")
+	tree.NewEditionType("<li>", "</li>")
+	tree.NewEditionType("<a>", "</a>")
+	tree.NewEditionType("<main>", "</main>")
+	tree.NewEditionType("<section>", "</section>")
+	tree.NewEditionType("<h2>", "</h2>")
+	tree.NewEditionType("<p>", "</p>")
+	tree.NewEditionType("<footer>", "</footer>")
 
-	proc := text_processor.NewProcessor(&tree, 1<<10, &l)
+	proc := text_processor.NewProcessor(&tree, maxBufferLength, &l)
 
+	l.LogProcessf("Starting tokenization...")
 	start := time.Now()
 
-	result := proc.Tokenize(input, true)
+	result := proc.Tokenize(input, false)
 
 	duration := time.Since(start)
+	l.LogProcessf("Ending tokenization")
 
 	for _, t := range result.Tokens() {
-		fmt.Printf("%+v\n\n", t)
+		l.LogProcessf("%+v\n\n", t)
 	}
 
-	fmt.Printf("duration: %v\n", duration.Nanoseconds())
+	fmt.Printf("duration: %v\n", duration.String())
 	fmt.Printf("stats: %v tokens found\n", result.TokenQuantity)
 }

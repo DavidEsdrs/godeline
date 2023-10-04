@@ -2,6 +2,9 @@ package position
 
 type Position struct {
 	Ln, Col int
+	// index holds and absolute index, instead of relative indexes (that is what
+	// Ln and Col should be)
+	Index int
 }
 
 // receives 4 arguments represeting the start and the and of 2 texts segments and returns if they overlaps
@@ -35,5 +38,5 @@ func GetPosition(text string, idx int) Position {
 		currentIdx++
 	}
 
-	return Position{currentLn, currentCol}
+	return Position{currentLn, currentCol, idx}
 }
