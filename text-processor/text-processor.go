@@ -29,26 +29,21 @@ func NewProcessor(et *editnode.EditionTree, maxBufferLength int, logger *logger.
 
 // Tokenize the given text using the processor prefix tree (EditionTree)
 func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
-	currentIdx := 0
 	textLength := len(text)
 	result := NewTextResult()
 
 	tracker := tracker.NewTracker()
 
-	for currentIdx < textLength {
-		alreadySeen := tracker.AlreadySeen(currentIdx)
-
-		if !alreadySeen {
-			tag, found := p.FoundTag(text, currentIdx)
+	for idx := 0; idx < textLength; idx++ {
+		if alreadySeen := tracker.AlreadySeen(idx); !alreadySeen {
+			tag, found := p.FoundTag(text, idx)
 
 			if found {
-				token, _ := p.GetTextByTag(text, currentIdx, tag) // TODO: Handle error properly
+				token, _ := p.GetTextByTag(text, idx, tag) // TODO: Handle error properly
 				result.AddToken(&token)
 				tracker.RegisterToken(token)
 			}
 		}
-
-		currentIdx++
 	}
 
 	if sanitize {

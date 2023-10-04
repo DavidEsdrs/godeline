@@ -10,7 +10,7 @@ import (
 )
 
 // holds the maximum window length in which we go search for a closing tag
-const maxBufferLength = 2
+const maxBufferLength = 1 << 12
 
 var input1 string = `
 <html>
