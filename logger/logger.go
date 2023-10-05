@@ -21,38 +21,38 @@ func NewLogger(verbose bool) Logger {
 	}
 }
 
-func (l *Logger) Log(msg string) {
+func (l Logger) Log(msg string) {
 	if l.Process {
 		l.logger.Println(msg)
 	}
 }
 
-func (l *Logger) LogWarnf(format string, msg ...any) {
+func (l Logger) LogWarnf(format string, msg ...any) {
 	if l.Warn {
 		l.logger.Printf(format, msg...)
 	}
 }
 
-func (l *Logger) LogProcessf(format string, msg ...any) {
+func (l Logger) LogProcessf(format string, msg ...any) {
 	if l.Process {
 		l.logger.Printf(format, msg...)
 	}
 }
 
-func (l *Logger) LogWarn(msg string) {
+func (l Logger) LogWarn(msg string) {
 	if l.Warn {
 		l.logger.Println(msg)
 	}
 }
 
-func (l *Logger) LogProcess(msg string) {
+func (l Logger) LogProcess(msg string) {
 	if l.Process {
 		l.logger.Println(msg)
 	}
 }
 
 // logs the message and kills the process with the given status code
-func (l *Logger) Fatal(message string, status int) {
+func (l Logger) Fatal(message string, status int) {
 	l.logger.Println(message)
 	os.Exit(status)
 }

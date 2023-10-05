@@ -17,7 +17,7 @@ func NewTracker() Tracker {
 	}
 }
 
-// tracker is used to register a new closing tag position
+// RegisterToken should be used register a new closing tag position
 func (t *Tracker) RegisterToken(token token.Token) {
 	closingTagIndex := token.Position.Index + token.Length - len(token.Tag.Closing)
 	t.tagsAlreadySeen[closingTagIndex] = struct{}{}

@@ -7,7 +7,8 @@ import (
 )
 
 type Token struct {
-	Word     string
+	Word string
+	// Position holds the starting position of the token
 	Position position.Position
 	Length   int
 	EditNode *editnode.EditNode

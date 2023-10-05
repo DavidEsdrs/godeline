@@ -1,9 +1,7 @@
 package text_processor
 
 import (
-	"bytes"
 	"fmt"
-	"regexp"
 
 	editnode "github.com/DavidEsdrs/goditor/editNode"
 	"github.com/DavidEsdrs/goditor/logger"
@@ -17,6 +15,7 @@ type Processor struct {
 	EditionTree     *editnode.EditionTree
 	logger          *logger.Logger
 	maxBufferLength int
+	stopOnError     bool
 }
 
 func NewProcessor(et *editnode.EditionTree, maxBufferLength int, logger *logger.Logger) Processor {
@@ -24,39 +23,57 @@ func NewProcessor(et *editnode.EditionTree, maxBufferLength int, logger *logger.
 		EditionTree:     et,
 		logger:          logger,
 		maxBufferLength: maxBufferLength,
+		stopOnError:     false,
 	}
 }
 
+func (p *Processor) StopOnError() {
+	p.stopOnError = true
+}
+
+var accGettingPosition int64 = 0
+
 // Tokenize the given text using the processor prefix tree (EditionTree)
-func (p *Processor) Tokenize(text string, sanitize bool) TextResult {
+func (p *Processor) Tokenize(text string, sanitize bool) (TextResult, error) {
 	textLength := len(text)
 	result := NewTextResult()
+
+	currentPosition := position.Position{Ln: 0, Col: 0, Index: 0}
 
 	tracker := tracker.NewTracker()
 
 	for idx := 0; idx < textLength; idx++ {
-		if alreadySeen := tracker.AlreadySeen(idx); !alreadySeen {
+		if !tracker.AlreadySeen(idx) {
 			tag, found := p.FoundTag(text, idx)
 
 			if found {
-				token, _ := p.GetTextByTag(text, idx, tag) // TODO: Handle error properly
-				result.AddToken(&token)
-				tracker.RegisterToken(token)
+				token, err := p.GetTextByTag(text, idx, tag, currentPosition)
+
+				if err != nil && p.stopOnError {
+					return result, err
+				}
+
+				if err == nil {
+					result.AddToken(&token)
+					tracker.RegisterToken(token)
+				}
 			}
 		}
+
+		currentPosition.Index, currentPosition.Col, currentPosition.Ln = updatePosition(text, idx, currentPosition.Col, currentPosition.Ln)
 	}
 
 	if sanitize {
-		for _, t := range result.tokens {
-			t.Word = Normalize(t.Word, t.Tag.Opening, t.Tag.Closing)
-		}
+		sanitizeTokens(result.tokens)
 	}
 
-	return result
+	fmt.Printf("accGettingPosition: %v\n", accGettingPosition)
+
+	return result, nil
 }
 
 // returns the text within the given tags
-func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) (token.Token, error) {
+func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag, startingPosition position.Position) (token.Token, error) {
 	var result token.Token
 
 	startingIdx := idx
@@ -66,21 +83,18 @@ func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag) (token.Toke
 	offset := len(tag.Opening)
 	currentIdx := idx + offset
 	bufferLen := len(tag.Closing)
-	startingPosition := position.GetPosition(text, idx)
 	currentCol := startingPosition.Col
 	currentLn := startingPosition.Ln
 	textLength := len(text)
 
-	found := false
-
-	for !found && currentIdx-startingIdx < p.maxBufferLength && currentIdx+bufferLen < textLength {
+	for currentIdx-startingIdx < p.maxBufferLength && currentIdx+bufferLen < textLength {
 		buffer := text[currentIdx : currentIdx+bufferLen]
 
 		if buffer == tag.Closing {
 			innerText := text[startingIdx : currentIdx+bufferLen]
 			pos := position.Position{
 				Ln:    currentLn,
-				Col:   currentCol + offset - len(innerText),
+				Col:   currentCol,
 				Index: idx,
 			}
 			result = token.NewToken(innerText, pos, tag, nil) // TODO: pass editNode instead of nil
@@ -129,24 +143,8 @@ func (p *Processor) FoundTag(text string, idx int) (tags.Tag, bool) {
 	return current.Tag, current.IsEnd
 }
 
-func (p *Processor) Sanitize(tokens ...token.Token) {
-	for i, t := range tokens {
-		sanitizedText := Normalize(t.Word, t.EditNode.Tag.Opening, t.EditNode.Tag.Closing)
-		tokens[i].Word = sanitizedText
+func sanitizeTokens(tokens []*token.Token) {
+	for i := range tokens {
+		tokens[i].Word = Normalize(tokens[i].Word, tokens[i].Tag.Opening, tokens[i].Tag.Closing)
 	}
-}
-
-// create a new string from the source with the given segments removed
-func Normalize(source string, removable ...string) string {
-	var buf bytes.Buffer
-	for _, str := range removable {
-		escapedStr := regexp.QuoteMeta(str)
-		if buf.Len() > 0 {
-			buf.WriteByte('|')
-		}
-		buf.WriteString(escapedStr)
-	}
-	regex := regexp.MustCompile(buf.String())
-	output := regex.ReplaceAllString(source, "")
-	return output
 }
