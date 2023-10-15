@@ -1,7 +1,7 @@
 package token
 
 import (
-	editnode "github.com/DavidEsdrs/goditor/editNode"
+	editnode "github.com/DavidEsdrs/goditor/edit-node"
 	"github.com/DavidEsdrs/goditor/position"
 	"github.com/DavidEsdrs/goditor/tags"
 )
