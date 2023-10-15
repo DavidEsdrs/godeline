@@ -31,8 +31,6 @@ func (p *Processor) StopOnError() {
 	p.stopOnError = true
 }
 
-var accGettingPosition int64 = 0
-
 // Tokenize the given text using the processor prefix tree (EditionTree)
 func (p *Processor) Tokenize(text string, sanitize bool) (TextResult, error) {
 	textLength := len(text)
@@ -66,8 +64,6 @@ func (p *Processor) Tokenize(text string, sanitize bool) (TextResult, error) {
 	if sanitize {
 		sanitizeTokens(result.tokens)
 	}
-
-	fmt.Printf("accGettingPosition: %v\n", accGettingPosition)
 
 	return result, nil
 }
