@@ -1,15 +1,15 @@
-package goditor
+package godeline
 
 import (
 	"fmt"
 
-	editnode "github.com/DavidEsdrs/goditor/edit-node"
-	"github.com/DavidEsdrs/goditor/logger"
-	"github.com/DavidEsdrs/goditor/position"
-	"github.com/DavidEsdrs/goditor/tags"
-	text_processor "github.com/DavidEsdrs/goditor/text-processor"
-	"github.com/DavidEsdrs/goditor/token"
-	"github.com/DavidEsdrs/goditor/tracker"
+	editnode "github.com/DavidEsdrs/godeline/edit-node"
+	"github.com/DavidEsdrs/godeline/logger"
+	"github.com/DavidEsdrs/godeline/position"
+	"github.com/DavidEsdrs/godeline/tags"
+	text_processor "github.com/DavidEsdrs/godeline/text-processor"
+	"github.com/DavidEsdrs/godeline/token"
+	"github.com/DavidEsdrs/godeline/tracker"
 )
 
 type Processor struct {

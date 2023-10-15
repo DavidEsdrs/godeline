@@ -1,6 +1,6 @@
 package text_processor
 
-import "github.com/DavidEsdrs/goditor/token"
+import "github.com/DavidEsdrs/godeline/token"
 
 type TextResult struct {
 	tokens        []*token.Token

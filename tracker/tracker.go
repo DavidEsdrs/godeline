@@ -1,7 +1,7 @@
 package tracker
 
 import (
-	"github.com/DavidEsdrs/goditor/token"
+	"github.com/DavidEsdrs/godeline/token"
 )
 
 // Tracker is used to keep track of the closing tags position.

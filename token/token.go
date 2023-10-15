@@ -1,9 +1,9 @@
 package token
 
 import (
-	editnode "github.com/DavidEsdrs/goditor/edit-node"
-	"github.com/DavidEsdrs/goditor/position"
-	"github.com/DavidEsdrs/goditor/tags"
+	editnode "github.com/DavidEsdrs/godeline/edit-node"
+	"github.com/DavidEsdrs/godeline/position"
+	"github.com/DavidEsdrs/godeline/tags"
 )
 
 type Token struct {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"regexp"
 
-	"github.com/DavidEsdrs/goditor/token"
+	"github.com/DavidEsdrs/godeline/token"
 )
 
 type Sanitizer struct {

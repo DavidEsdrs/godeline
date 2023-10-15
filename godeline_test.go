@@ -1,10 +1,10 @@
-package goditor_test
+package godeline_test
 
 import (
 	"testing"
 
-	"github.com/DavidEsdrs/goditor"
-	editnode "github.com/DavidEsdrs/goditor/editNode"
+	"github.com/DavidEsdrs/godeline"
+	editnode "github.com/DavidEsdrs/godeline/edit-node"
 )
 
 func TestTokenize(t *testing.T) {
@@ -48,23 +48,23 @@ func TestTokenize(t *testing.T) {
 
 	tree := editnode.NewEditTree()
 
-	tree.NewEditionType("<html>", "</html>")
-	tree.NewEditionType("<head>", "</head>")
-	tree.NewEditionType("<body>", "</body>")
-	tree.NewEditionType("<header>", "</header>")
-	tree.NewEditionType("<h1>", "</h1>")
-	tree.NewEditionType("<nav>", "</nav>")
-	tree.NewEditionType("<ul>", "</ul>")
-	tree.NewEditionType("<li>", "</li>")
-	tree.NewEditionType("<a>", "</a>")
-	tree.NewEditionType("<main>", "</main>")
-	tree.NewEditionType("<section>", "</section>")
-	tree.NewEditionType("<h2>", "</h2>")
-	tree.NewEditionType("<p>", "</p>")
-	tree.NewEditionType("<footer>", "</footer>")
-	tree.NewEditionType("<footer>", "</footer>")
+	tree.AddDelimiterType("<html>", "</html>")
+	tree.AddDelimiterType("<head>", "</head>")
+	tree.AddDelimiterType("<body>", "</body>")
+	tree.AddDelimiterType("<header>", "</header>")
+	tree.AddDelimiterType("<h1>", "</h1>")
+	tree.AddDelimiterType("<nav>", "</nav>")
+	tree.AddDelimiterType("<ul>", "</ul>")
+	tree.AddDelimiterType("<li>", "</li>")
+	tree.AddDelimiterType("<a>", "</a>")
+	tree.AddDelimiterType("<main>", "</main>")
+	tree.AddDelimiterType("<section>", "</section>")
+	tree.AddDelimiterType("<h2>", "</h2>")
+	tree.AddDelimiterType("<p>", "</p>")
+	tree.AddDelimiterType("<footer>", "</footer>")
+	tree.AddDelimiterType("<footer>", "</footer>")
 
-	proc := goditor.NewProcessor(&tree, 1<<12, nil)
+	proc := godeline.NewProcessor(&tree, 1<<12, nil)
 
 	_, err := proc.Tokenize(input, false)
 
@@ -114,23 +114,23 @@ func TestTokenizeAndSanitization(t *testing.T) {
 
 	tree := editnode.NewEditTree()
 
-	tree.NewEditionType("<html>", "</html>")
-	tree.NewEditionType("<head>", "</head>")
-	tree.NewEditionType("<body>", "</body>")
-	tree.NewEditionType("<header>", "</header>")
-	tree.NewEditionType("<h1>", "</h1>")
-	tree.NewEditionType("<nav>", "</nav>")
-	tree.NewEditionType("<ul>", "</ul>")
-	tree.NewEditionType("<li>", "</li>")
-	tree.NewEditionType("<a>", "</a>")
-	tree.NewEditionType("<main>", "</main>")
-	tree.NewEditionType("<section>", "</section>")
-	tree.NewEditionType("<h2>", "</h2>")
-	tree.NewEditionType("<p>", "</p>")
-	tree.NewEditionType("<footer>", "</footer>")
-	tree.NewEditionType("<footer>", "</footer>")
+	tree.AddDelimiterType("<html>", "</html>")
+	tree.AddDelimiterType("<head>", "</head>")
+	tree.AddDelimiterType("<body>", "</body>")
+	tree.AddDelimiterType("<header>", "</header>")
+	tree.AddDelimiterType("<h1>", "</h1>")
+	tree.AddDelimiterType("<nav>", "</nav>")
+	tree.AddDelimiterType("<ul>", "</ul>")
+	tree.AddDelimiterType("<li>", "</li>")
+	tree.AddDelimiterType("<a>", "</a>")
+	tree.AddDelimiterType("<main>", "</main>")
+	tree.AddDelimiterType("<section>", "</section>")
+	tree.AddDelimiterType("<h2>", "</h2>")
+	tree.AddDelimiterType("<p>", "</p>")
+	tree.AddDelimiterType("<footer>", "</footer>")
+	tree.AddDelimiterType("<footer>", "</footer>")
 
-	proc := goditor.NewProcessor(&tree, 1<<12, nil)
+	proc := godeline.NewProcessor(&tree, 1<<12, nil)
 
 	_, err := proc.Tokenize(input, true)
 

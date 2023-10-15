@@ -3,8 +3,8 @@ package editnode
 import (
 	"fmt"
 
-	"github.com/DavidEsdrs/goditor/stack"
-	"github.com/DavidEsdrs/goditor/tags"
+	"github.com/DavidEsdrs/godeline/stack"
+	"github.com/DavidEsdrs/godeline/tags"
 )
 
 type EditionTree struct {
