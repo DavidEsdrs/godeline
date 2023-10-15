@@ -64,7 +64,7 @@ func TestTokenize(t *testing.T) {
 	tree.AddDelimiterType("<footer>", "</footer>")
 	tree.AddDelimiterType("<footer>", "</footer>")
 
-	proc := godeline.NewProcessor(&tree, 1<<12, nil)
+	proc := godeline.NewProcessor(&tree, 1<<12)
 
 	_, err := proc.Tokenize(input, false)
 
@@ -130,9 +130,11 @@ func TestTokenizeAndSanitization(t *testing.T) {
 	tree.AddDelimiterType("<footer>", "</footer>")
 	tree.AddDelimiterType("<footer>", "</footer>")
 
-	proc := godeline.NewProcessor(&tree, 1<<12, nil)
+	proc := godeline.NewProcessor(&tree, 1<<12)
 
-	_, err := proc.Tokenize(input, true)
+	result, err := proc.Tokenize(input, true)
+
+	result.Tokens() // array de tokens
 
 	if err != nil {
 		t.Errorf(err.Error())

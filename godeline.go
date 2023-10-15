@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	editnode "github.com/DavidEsdrs/godeline/edit-node"
-	"github.com/DavidEsdrs/godeline/logger"
 	"github.com/DavidEsdrs/godeline/position"
 	"github.com/DavidEsdrs/godeline/tags"
 	text_processor "github.com/DavidEsdrs/godeline/text-processor"
@@ -14,15 +13,13 @@ import (
 
 type Processor struct {
 	EditionTree     *editnode.EditionTree
-	logger          *logger.Logger
 	maxBufferLength int
 	stopOnError     bool
 }
 
-func NewProcessor(et *editnode.EditionTree, maxBufferLength int, logger *logger.Logger) Processor {
+func NewProcessor(et *editnode.EditionTree, maxBufferLength int) Processor {
 	return Processor{
 		EditionTree:     et,
-		logger:          logger,
 		maxBufferLength: maxBufferLength,
 		stopOnError:     false,
 	}

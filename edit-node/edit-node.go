@@ -13,7 +13,7 @@ type EditionTree struct {
 }
 
 func NewEditTree() EditionTree {
-	node := NewEditNode('0')
+	node := newEditNode('0')
 	return EditionTree{
 		root:       &node,
 		NodesQuant: 1,
@@ -83,7 +83,7 @@ type EditNode struct {
 	Children map[rune]*EditNode
 }
 
-func NewEditNode(seg rune) EditNode {
+func newEditNode(seg rune) EditNode {
 	return EditNode{
 		Segment:  seg,
 		Children: map[rune]*EditNode{},
