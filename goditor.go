@@ -3,7 +3,7 @@ package goditor
 import (
 	"fmt"
 
-	editnode "github.com/DavidEsdrs/goditor/editNode"
+	editnode "github.com/DavidEsdrs/goditor/edit-node"
 	"github.com/DavidEsdrs/goditor/logger"
 	"github.com/DavidEsdrs/goditor/position"
 	"github.com/DavidEsdrs/goditor/tags"
@@ -43,10 +43,10 @@ func (p *Processor) Tokenize(text string, sanitize bool) (text_processor.TextRes
 
 	for idx := 0; idx < textLength; idx++ {
 		if !tracker.AlreadySeen(idx) {
-			tag, found := p.FoundTag(text, idx)
+			tag, found := p.foundTag(text, idx)
 
 			if found {
-				token, err := p.GetTextByTag(text, idx, tag, currentPosition)
+				token, err := p.getTextByTag(text, idx, tag, currentPosition)
 
 				if err != nil && p.stopOnError {
 					return result, err
@@ -70,7 +70,7 @@ func (p *Processor) Tokenize(text string, sanitize bool) (text_processor.TextRes
 }
 
 // returns the text within the given tags
-func (p *Processor) GetTextByTag(text string, idx int, tag tags.Tag, startingPosition position.Position) (token.Token, error) {
+func (p *Processor) getTextByTag(text string, idx int, tag tags.Tag, startingPosition position.Position) (token.Token, error) {
 	var result token.Token
 
 	startingIdx := idx
@@ -120,7 +120,7 @@ func updatePosition(text string, currentIdx, currentCol, currentLn int) (int, in
 }
 
 // returns wether the next few characters constitute a tag
-func (p *Processor) FoundTag(text string, idx int) (tags.Tag, bool) {
+func (p *Processor) foundTag(text string, idx int) (tags.Tag, bool) {
 	current := p.EditionTree.Root()
 	currentIdx := idx
 	currentChar := rune(text[currentIdx])
