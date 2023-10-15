@@ -13,11 +13,13 @@ func NewTextResult() TextResult {
 	}
 }
 
+// Appends a new token in the array
 func (tr *TextResult) AddToken(token *token.Token) {
 	tr.tokens = append(tr.tokens, token)
 	tr.TokenQuantity++
 }
 
+// Tokens returns the tokens added with AddToken
 func (tr *TextResult) Tokens() []*token.Token {
 	return tr.tokens
 }
