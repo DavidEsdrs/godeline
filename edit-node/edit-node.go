@@ -38,7 +38,7 @@ func (et *EditionTree) Traverse() []EditNode {
 	return result
 }
 
-func (et *EditionTree) NewEditionType(delimiter string, counterpart string) error {
+func (et *EditionTree) AddDelimiterType(delimiter string, counterpart string) error {
 	if !isValidDelimiter(delimiter) {
 		return fmt.Errorf("invalid delimiter")
 	}
