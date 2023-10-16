@@ -43,7 +43,7 @@ func (p *Processor) Tokenize(text string, sanitize bool) (text_processor.TextRes
 			tag, found := p.foundTag(text, idx)
 
 			if found {
-				token, err := p.getTextByTag(text, idx, tag, currentPosition)
+				token, err := p.getTextByTag(text, idx, tag, currentPosition, tracker)
 
 				if err != nil && p.stopOnError {
 					return result, err
@@ -67,7 +67,7 @@ func (p *Processor) Tokenize(text string, sanitize bool) (text_processor.TextRes
 }
 
 // returns the text within the given tags
-func (p *Processor) getTextByTag(text string, idx int, tag tags.Tag, startingPosition position.Position) (token.Token, error) {
+func (p *Processor) getTextByTag(text string, idx int, tag tags.Tag, startingPosition position.Position, tracker tracker.Tracker) (token.Token, error) {
 	var result token.Token
 
 	startingIdx := idx
@@ -82,17 +82,19 @@ func (p *Processor) getTextByTag(text string, idx int, tag tags.Tag, startingPos
 	textLength := len(text)
 
 	for (currentIdx-startingIdx < p.maxBufferLength || p.maxBufferLength == 0) && currentIdx+bufferLen < textLength {
-		buffer := text[currentIdx : currentIdx+bufferLen]
+		if !tracker.AlreadySeen(currentIdx) {
+			buffer := text[currentIdx : currentIdx+bufferLen]
 
-		if buffer == tag.Closing {
-			innerText := text[startingIdx : currentIdx+bufferLen]
-			pos := position.Position{
-				Ln:    currentLn,
-				Col:   currentCol,
-				Index: idx,
+			if buffer == tag.Closing {
+				innerText := text[startingIdx : currentIdx+bufferLen]
+				pos := position.Position{
+					Ln:    currentLn,
+					Col:   currentCol,
+					Index: idx,
+				}
+				result = token.NewToken(innerText, pos, tag, nil) // TODO: pass editNode instead of nil
+				return result, nil
 			}
-			result = token.NewToken(innerText, pos, tag, nil) // TODO: pass editNode instead of nil
-			return result, nil
 		}
 
 		currentIdx, currentCol, currentLn = updatePosition(text, currentIdx, currentCol, currentLn)
