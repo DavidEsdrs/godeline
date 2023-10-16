@@ -81,7 +81,7 @@ func (p *Processor) getTextByTag(text string, idx int, tag tags.Tag, startingPos
 	currentLn := startingPosition.Ln
 	textLength := len(text)
 
-	for currentIdx-startingIdx < p.maxBufferLength && currentIdx+bufferLen < textLength {
+	for (currentIdx-startingIdx < p.maxBufferLength || p.maxBufferLength == 0) && currentIdx+bufferLen < textLength {
 		buffer := text[currentIdx : currentIdx+bufferLen]
 
 		if buffer == tag.Closing {
@@ -139,6 +139,6 @@ func (p *Processor) foundTag(text string, idx int) (tags.Tag, bool) {
 
 func sanitizeTokens(tokens []*token.Token) {
 	for i := range tokens {
-		tokens[i].Word = text_processor.Normalize(tokens[i].Word, tokens[i].Tag.Opening, tokens[i].Tag.Closing)
+		tokens[i].InnerText = text_processor.Normalize(tokens[i].InnerText, tokens[i].Tag.Opening, tokens[i].Tag.Closing)
 	}
 }
