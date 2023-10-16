@@ -13,8 +13,8 @@ type Sanitizer struct {
 // removes the opening and closing tags from a token
 func (p Sanitizer) Sanitize(tokens ...token.Token) {
 	for i, t := range tokens {
-		sanitizedText := Normalize(t.Word, t.EditNode.Tag.Opening, t.EditNode.Tag.Closing)
-		tokens[i].Word = sanitizedText
+		sanitizedText := Normalize(t.InnerText, t.EditNode.Tag.Opening, t.EditNode.Tag.Closing)
+		tokens[i].InnerText = sanitizedText
 	}
 }
 
