@@ -66,7 +66,7 @@ func TestTokenize(t *testing.T) {
 
 	proc := godeline.NewProcessor(&tree, 1<<12)
 
-	_, err := proc.Tokenize(input, false)
+	_, err := proc.Tokenize(input)
 
 	if err != nil {
 		t.Errorf(err.Error())
@@ -132,7 +132,9 @@ func TestTokenizeAndSanitization(t *testing.T) {
 
 	proc := godeline.NewProcessor(&tree, 1<<12)
 
-	result, err := proc.Tokenize(input, true)
+	proc.Sanitize()
+
+	result, err := proc.Tokenize(input)
 
 	result.Tokens() // array de tokens
 
@@ -145,7 +147,7 @@ func TestNested(t *testing.T) {
 	tree := editnode.NewEditTree()
 	tree.AddDelimiterType("[[", "]]")
 	proc := godeline.NewProcessor(&tree, 1<<12)
-	_, err := proc.Tokenize("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec iaculis mauris in fringilla ornare. In hac habitasse platea dictumst. Mauris et nisi id turpis vulputate fermentum. Nulla ac aliquet lorem, sed placerat est. Nam lacinia est ac velit malesuada, non lacinia erat laoreet. Praesent purus diam, consequat quis libero at, [[vu[[putate]] idawdawd ]]mperdiet purus. In ut luctus ex. Aenean semper non orci blandit varius. Vestibulum lectus est, cursus a orci sed, gravida pretium massa. Nam id elit quis massa aliquet tristique. Ut porttitor aliquam semper. Nam arcu ipsum, aliquam quis aliquam a, varius sed nulla. Cras at ante eu libero dapibus iaculis et id urna. Donec ac velit tellus. Duis vestibulum nec mi et vehicula. Pellentesque ornare volutpat rhoncus.", false)
+	_, err := proc.Tokenize("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec iaculis mauris in fringilla ornare. In hac habitasse platea dictumst. Mauris et nisi id turpis vulputate fermentum. Nulla ac aliquet lorem, sed placerat est. Nam lacinia est ac velit malesuada, non lacinia erat laoreet. Praesent purus diam, consequat quis libero at, [[vu[[putate]] idawdawd ]]mperdiet purus. In ut luctus ex. Aenean semper non orci blandit varius. Vestibulum lectus est, cursus a orci sed, gravida pretium massa. Nam id elit quis massa aliquet tristique. Ut porttitor aliquam semper. Nam arcu ipsum, aliquam quis aliquam a, varius sed nulla. Cras at ante eu libero dapibus iaculis et id urna. Donec ac velit tellus. Duis vestibulum nec mi et vehicula. Pellentesque ornare volutpat rhoncus.")
 	if err != nil {
 		t.Error(err)
 	}

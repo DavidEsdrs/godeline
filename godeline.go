@@ -15,6 +15,7 @@ type Processor struct {
 	EditionTree     *editnode.EditionTree
 	maxBufferLength int
 	stopOnError     bool
+	sanitize        bool
 }
 
 func NewProcessor(et *editnode.EditionTree, maxBufferLength int) Processor {
@@ -29,8 +30,12 @@ func (p *Processor) StopOnError() {
 	p.stopOnError = true
 }
 
+func (p *Processor) Sanitize() {
+	p.sanitize = true
+}
+
 // Tokenize the given text using the processor prefix tree (EditionTree)
-func (p *Processor) Tokenize(text string, sanitize bool) (text_processor.TextResult, error) {
+func (p *Processor) Tokenize(text string) (text_processor.TextResult, error) {
 	textLength := len(text)
 	result := text_processor.NewTextResult()
 
@@ -59,10 +64,6 @@ func (p *Processor) Tokenize(text string, sanitize bool) (text_processor.TextRes
 		currentPosition.Index, currentPosition.Col, currentPosition.Ln = updatePosition(text, idx, currentPosition.Col, currentPosition.Ln)
 	}
 
-	if sanitize {
-		sanitizeTokens(result.Tokens())
-	}
-
 	return result, nil
 }
 
@@ -80,13 +81,21 @@ func (p *Processor) getTextByTag(text string, idx int, tag tags.Tag, startingPos
 	currentCol := startingPosition.Col
 	currentLn := startingPosition.Ln
 	textLength := len(text)
+	openingLen := len(tag.Opening)
 
 	for (currentIdx-startingIdx < p.maxBufferLength || p.maxBufferLength == 0) && currentIdx+bufferLen < textLength {
 		if !tracker.AlreadySeen(currentIdx) {
 			buffer := text[currentIdx : currentIdx+bufferLen]
 
 			if buffer == tag.Closing {
-				innerText := text[startingIdx : currentIdx+bufferLen]
+				var innerText string
+
+				if p.sanitize {
+					innerText = text[startingIdx+openingLen : currentIdx]
+				} else {
+					innerText = text[startingIdx : currentIdx+bufferLen]
+				}
+
 				pos := position.Position{
 					Ln:    currentLn,
 					Col:   currentCol,
@@ -137,10 +146,4 @@ func (p *Processor) foundTag(text string, idx int) (tags.Tag, bool) {
 	}
 
 	return current.Tag, current.IsEnd
-}
-
-func sanitizeTokens(tokens []*token.Token) {
-	for i := range tokens {
-		tokens[i].InnerText = text_processor.Normalize(tokens[i].InnerText, tokens[i].Tag.Opening, tokens[i].Tag.Closing)
-	}
 }
