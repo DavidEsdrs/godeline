@@ -1,7 +1,7 @@
 package godeline
 
 import (
-	"fmt"
+	"errors"
 
 	editnode "github.com/DavidEsdrs/godeline/edit-node"
 	"github.com/DavidEsdrs/godeline/position"
@@ -9,6 +9,10 @@ import (
 	text_processor "github.com/DavidEsdrs/godeline/text-processor"
 	"github.com/DavidEsdrs/godeline/token"
 	"github.com/DavidEsdrs/godeline/tracker"
+)
+
+var (
+	ErrClosingTagNotFound = errors.New("godeline: source code has not closing tag")
 )
 
 type Processor struct {
@@ -109,7 +113,7 @@ func (p *Processor) getTextByTag(text string, idx int, tag tags.Tag, startingPos
 		currentIdx, currentCol, currentLn = updatePosition(text, currentIdx, currentCol, currentLn)
 	}
 
-	return result, fmt.Errorf("couldn't find the correspondent closing tag")
+	return result, ErrClosingTagNotFound
 }
 
 func updatePosition(text string, currentIdx, currentCol, currentLn int) (int, int, int) {
