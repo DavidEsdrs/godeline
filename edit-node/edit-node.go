@@ -38,6 +38,11 @@ func (et *EditionTree) Traverse() []EditNode {
 	return result
 }
 
+func (et *EditionTree) Reset() {
+	node := newEditNode('0')
+	et.root = &node
+}
+
 func (et *EditionTree) AddDelimiterType(delimiter string, counterpart string) error {
 	if !isValidDelimiter(delimiter) {
 		return fmt.Errorf("invalid delimiter")
