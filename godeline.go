@@ -49,7 +49,7 @@ func (p *Processor) Tokenize(text string) (text_processor.TextResult, error) {
 
 	for idx := 0; idx < textLength; idx++ {
 		if !tracker.AlreadySeen(idx) {
-			tag, found := p.foundTag(text, idx)
+			tag, found := p.foundTag(text, textLength, idx)
 
 			if found {
 				token, err := p.getTextByTag(text, idx, tag, currentPosition, tracker)
@@ -136,7 +136,7 @@ func updatePosition(text string, currentIdx, currentCol, currentLn int) (int, in
 }
 
 // returns wether the next few characters constitute a tag
-func (p *Processor) foundTag(text string, idx int) (tags.Tag, bool) {
+func (p *Processor) foundTag(text string, textLength, idx int) (tags.Tag, bool) {
 	current := p.EditionTree.Root()
 	currentIdx := idx
 	currentChar := rune(text[currentIdx])
@@ -149,8 +149,10 @@ func (p *Processor) foundTag(text string, idx int) (tags.Tag, bool) {
 		current = node
 		currentIdx++
 
-		currentChar = rune(text[currentIdx])
-		node, exists = current.Children[currentChar]
+		if idx < textLength {
+			currentChar = rune(text[currentIdx])
+			node, exists = current.Children[currentChar]
+		}
 	}
 
 	return current.Tag, current.IsEnd
