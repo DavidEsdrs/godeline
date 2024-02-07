@@ -139,6 +139,7 @@ func updatePosition(text string, currentIdx, currentCol, currentLn int) (int, in
 func (p *Processor) foundTag(text string, textLength, idx int) (tags.Tag, bool) {
 	current := p.EditionTree.Root()
 	currentIdx := idx
+
 	currentChar := rune(text[currentIdx])
 
 	node, exists := current.Children[currentChar]
@@ -149,9 +150,11 @@ func (p *Processor) foundTag(text string, textLength, idx int) (tags.Tag, bool) 
 		current = node
 		currentIdx++
 
-		if idx < textLength {
+		if currentIdx < textLength {
 			currentChar = rune(text[currentIdx])
 			node, exists = current.Children[currentChar]
+		} else {
+			exists = false
 		}
 	}
 
