@@ -87,7 +87,7 @@ func (p *Processor) getTextByTag(text string, idx int, tag tags.Tag, startingPos
 	textLength := len(text)
 	openingLen := len(tag.Opening)
 
-	for (currentIdx-startingIdx < p.maxBufferLength || p.maxBufferLength == 0) && currentIdx+bufferLen < textLength {
+	for canSearch(currentIdx, startingIdx, p.maxBufferLength, textLength, bufferLen) {
 		if !tracker.AlreadySeen(currentIdx) {
 			buffer := text[currentIdx : currentIdx+bufferLen]
 
@@ -114,6 +114,10 @@ func (p *Processor) getTextByTag(text string, idx int, tag tags.Tag, startingPos
 	}
 
 	return result, ErrClosingTagNotFound
+}
+
+func canSearch(currIdx, startingIdx, maxLength, textLength, bufferLen int) bool {
+	return currIdx < textLength && currIdx+bufferLen < textLength && (currIdx-startingIdx < maxLength || maxLength == 0)
 }
 
 func updatePosition(text string, currentIdx, currentCol, currentLn int) (int, int, int) {
